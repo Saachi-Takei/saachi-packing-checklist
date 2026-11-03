@@ -1,0 +1,252 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My Packing Checklist 🎀</title>
+<style>
+:root {
+  --pink: #f5a9c5;
+  --deep: #c65c89;
+  --ink: #563b49;
+  --muted: #987d8a;
+  --line: #f1dce5;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  padding: 30px 16px;
+  background: linear-gradient(145deg,#fff7fa,#fceaf2,#fff9fc);
+  font-family: Arial, sans-serif;
+  color: var(--ink);
+}
+main { max-width: 760px; margin: auto; }
+header { text-align: center; margin: 15px 0 25px; }
+header h1 { font-family: Georgia,serif; font-size: 38px; }
+header p,.muted { color: var(--muted); }
+.card {
+  background: #ffffffdf;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 22px;
+  margin: 16px 0;
+  box-shadow: 0 8px 28px #a94d7410;
+}
+.progress-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.percent { font-size: 30px; color: var(--deep); font-weight: bold; }
+.track {
+  height: 14px;
+  background: #f7e4ec;
+  border-radius: 20px;
+  overflow: hidden;
+  margin: 15px 0;
+}
+.fill {
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg,#f6b2cc,#d86f9b);
+  transition: width .2s;
+}
+.items {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.item {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+  background: #fff9fb;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.item input {
+  accent-color: var(--deep);
+  width: 18px;
+  height: 18px;
+}
+.item.done span {
+  text-decoration: line-through;
+  color: #b69eaa;
+}
+button {
+  display: block;
+  margin: 20px auto;
+  padding: 11px 20px;
+  border: 1px solid #e8bfd0;
+  border-radius: 25px;
+  background: white;
+  color: var(--deep);
+  cursor: pointer;
+}
+footer { text-align: center; color: var(--muted); }
+@media(max-width:540px) {
+  .items { grid-template-columns: 1fr; }
+  header h1 { font-size: 30px; }
+}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <div>🎀 ✨ 🌷</div>
+  <h1>My Packing Checklist</h1>
+  <p>A little preparation makes a lovely school day!</p>
+</header>
+
+<section class="card">
+  <div class="progress-top">
+    <h3>📊 Packing progress</h3>
+    <div class="percent" id="percent">0%</div>
+  </div>
+  <div class="track"><div class="fill" id="fill"></div></div>
+  <div class="muted" id="count">0 of 31 items packed</div>
+  <p id="message">Let's get started! 💗</p>
+</section>
+
+<div id="sections"></div>
+
+<section class="card">
+  <h3>🌙 Before going to bed</h3>
+  <div class="items" id="bedtime"></div>
+</section>
+
+<button id="reset">↻ Reset all checkboxes</button>
+<footer>♡ You've got this! Have a wonderful school day. ♡</footer>
+</main>
+
+<script>
+const groups = [
+ ["📚 Books & Learning",[
+ "Textbooks for tomorrow","Exercise books",
+ "Homework and worksheets","School diary / planner",
+ "Revision notes","Reading book"
+ ]],
+ ["✏️ Pencil Case",[
+ "Pencils","Eraser","Sharpener","Ruler",
+ "Blue or black pens","Colour pencils",
+ "Highlighters","Glue stick","Scissors"
+ ]],
+ ["📁 School Essentials",[
+ "School ID card","Pencil pouch","Folders",
+ "Timetable","Any letters to submit"
+ ]],
+ ["🥤 Daily Essentials",[
+ "Water bottle","Lunch box / snacks","Tissues",
+ "Wet wipes","Hand sanitiser","Small towel"
+ ]],
+ ["🎀 Extra Items",[
+ "Piano or activity materials (if needed)",
+ "Umbrella","Extra hair ties","Small pouch",
+ "Any special items needed tomorrow"
+ ]]
+];
+
+const bedtime = [
+ "Check tomorrow's timetable",
+ "Finish all homework",
+ "Pack the correct books",
+ "Fill your water bottle",
+ "Put your bag near the door",
+ "Set your alarm clock"
+];
+
+const storageKey = "myPackingChecklist";
+let saved = {};
+try {
+  saved = JSON.parse(localStorage.getItem(storageKey) || "{}") || {};
+} catch(e) {}
+
+function save() {
+  try {
+    localStorage.setItem(storageKey, JSON.stringify(saved));
+  } catch(e) {}
+}
+
+function makeItem(label,id) {
+  const row = document.createElement("label");
+  row.className = "item";
+  const input = document.createElement("input");
+  input.type = "checkbox";
+  input.checked = !!saved[id];
+  const span = document.createElement("span");
+  span.textContent = label;
+  row.append(input,span);
+  row.classList.toggle("done",input.checked);
+
+  input.addEventListener("change",() => {
+    saved[id] = input.checked;
+    row.classList.toggle("done",input.checked);
+    save();
+    update();
+  });
+  return row;
+}
+
+const sections = document.getElementById("sections");
+
+groups.forEach((group,i) => {
+  const card = document.createElement("section");
+  card.className = "card";
+  const heading = document.createElement("h3");
+  heading.textContent = group[0];
+  const items = document.createElement("div");
+  items.className = "items";
+
+  group[1].forEach((label,j) => {
+    items.append(makeItem(label,"bag-"+i+"-"+j));
+  });
+
+  card.append(heading,items);
+  sections.append(card);
+});
+
+bedtime.forEach((label,i) => {
+  document.getElementById("bedtime").append(
+    makeItem(label,"bed-"+i)
+  );
+});
+
+const total = groups.reduce((n,g) => n+g[1].length,0);
+
+function update() {
+  const boxes = [
+    ...sections.querySelectorAll('input[type="checkbox"]')
+  ];
+  const done = boxes.filter(box => box.checked).length;
+  const pct = Math.round(done/total*100);
+
+  document.getElementById("percent").textContent = pct+"%";
+  document.getElementById("fill").style.width = pct+"%";
+  document.getElementById("count").textContent =
+    done+" of "+total+" items packed";
+
+  document.getElementById("message").textContent =
+    pct===100 ? "All packed! Amazing! 🎉" :
+    pct>=75 ? "Almost ready! 💖" :
+    pct>=40 ? "You're doing great! 🌸" :
+    "Let's get started! 💗";
+}
+
+document.getElementById("reset").addEventListener("click",() => {
+  if (!confirm("Reset all your checkboxes?")) return;
+  saved = {};
+  try { localStorage.removeItem(storageKey); } catch(e) {}
+  document.querySelectorAll('input[type="checkbox"]').forEach(box => {
+    box.checked = false;
+    box.closest(".item").classList.remove("done");
+  });
+  update();
+});
+
+update();
+</script>
+</body>
+</html>
